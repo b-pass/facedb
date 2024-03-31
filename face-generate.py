@@ -57,9 +57,9 @@ for file,basename in files:
         n += 1
         
         img = DFpp.normalize_input(img=face["face"], normalization='Facenet')
-        emb1 = model.find_embeddings(img)
-        emb2 = model.find_embeddings(np.fliplr(img))
-        embedding = np.append(emb1, emb2)
+        embedding = model.find_embeddings(img)
+        #emb2 = model.find_embeddings(np.fliplr(img))
+        #embedding = np.append(embedding, emb2)
         out.append({
             "embedding" : base64.b64encode(np.asarray(embedding, dtype='float64').tobytes()).decode('ascii'),
             "facial_area" : face['facial_area'],
