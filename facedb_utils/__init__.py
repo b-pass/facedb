@@ -100,7 +100,7 @@ def normalize_image(img, model):
         img /= 127.5
         img -= 1
 
-    elif model == "VGGFace":
+    elif model == "VGGFace" or model == "VGG-Face":
         # The training images were rescaled such that the smaller of width and height was equal
         # to 256. During training, the network is fed with random 224 × 224 pixel patches cropped
         # from these images (where crops change every time an image is sampled). The data was fur-
@@ -108,7 +108,7 @@ def normalize_image(img, model):
         # perform any colour channel augmentation.
         pass
 
-    elif model == "VGGFace2":
+    elif model in ["VGGFace2","VGG-Face2","VGG-Face-2","VGGFace-2"]:
         # Training implementation details. During training, a region
         # of 224 × 224 pixels is randomly cropped from each sample,
         # and the shorter side is resized to 256. The mean value of
