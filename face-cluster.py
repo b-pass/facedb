@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+import tensorflow
+tensorflow.keras.utils.disable_interactive_logging()
+
 import cv2
 from deepface.DeepFace import verification as DFv
-import os
 import sys
 import time
 import json
@@ -13,10 +17,13 @@ from hdbscan import HDBSCAN
 from sklearn.cluster import DBSCAN, AgglomerativeClustering
 import matplotlib.pyplot as plt
 
-dbdir = '/data/family-photos/facedb/'
-MODEL = 'Facenet'
-METHOD = 'euclidean_l2'
-conf_threshold = 0.6
+METHOD = 'cosine'
+if len(sys.argv) > 1:
+    dbdir = sys.argv[1]
+    if len(sys.argv) > 2:
+        METHOD = sys.argv[2]
+MODEL = None
+conf_threshold = 0.5
 
 print("Reading from "+dbdir)
 all = []
@@ -28,11 +35,13 @@ for f in sorted(os.listdir(dbdir)):
     for face in data["faces"]:
         if face['confidence'] < conf_threshold:
             continue
-        if face['facial_area']['w'] < 60 or face['facial_area']['h'] < 60:
-            continue
+        #if face['facial_area']['w'] < 60 or face['facial_area']['h'] < 60:
+        #    continue
         face["path"] = data["path"]
         face['basename'] = data['basename']
         face["algo"] = data["algo"]
+        if not MODEL:
+            MODEL = face['algo']
         face['embedding'] = np.frombuffer(base64.b64decode(face['embedding']), dtype='float64').tolist()
         all.append(face)
     #if len(all) > 500: break
@@ -70,11 +79,10 @@ else:
 
         dist = np.ndarray((len(all),len(all)), dtype='float64')
         for a in range(len(all)):
-            for b in range(a+1, len(all)):
+            for b in range(len(all)):
                 x = np.matmul(np.transpose(all[a]['embedding']), all[b]['embedding'])
                 d = 1 - (x / (norm[a] * norm[b]))
                 dist[a,b] = d
-                dist[b,a] = d
     else:
         print('FAIL, method unknown')
         sys.exit(1)
@@ -101,7 +109,7 @@ for a in range(len(all)):
 for a in range(len(all)):
     for b in range(a+1,len(all)):
         if dist[a,b] < thresh:
-            g.add_edge(a, b, weight=1.0-dist[a,b])
+            g.add_edge(a, b)#, weight=1.0-dist[a,b])
             y += 1
         else:
             n += 1
@@ -132,8 +140,8 @@ while True:
         done = False
         count += 1
         break
-    if count > 10:
-        sys.exit(1)
+    #if count > 10:
+    sys.exit(1)
     print('\n\n\nmore??\n\n')
 
 #print(f"Bad components = {len(bad)}, Good components = {len(good)}")
