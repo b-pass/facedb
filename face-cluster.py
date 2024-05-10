@@ -17,7 +17,7 @@ from hdbscan import HDBSCAN
 from sklearn.cluster import DBSCAN, AgglomerativeClustering
 import matplotlib.pyplot as plt
 
-METHOD = 'cosine'
+METHOD = 'euclidean_l2'
 if len(sys.argv) > 1:
     dbdir = sys.argv[1]
     if len(sys.argv) > 2:
@@ -56,10 +56,10 @@ else:
     print('Building distance matrix ')
     start = time.time()
 
-    # precompute euclidean_l2 for the whole dataset, this is a 4x speedup
     norm = []
 
     if METHOD.startswith('euclidean'):
+        # precompute euclidean_l2 for the whole dataset, this is a 4x speedup
         if METHOD == 'euclidean_l2':
             for a in all:
                 norm.append(DFv.l2_normalize(a['embedding']))
@@ -80,9 +80,11 @@ else:
         dist = np.ndarray((len(all),len(all)), dtype='float64')
         for a in range(len(all)):
             for b in range(len(all)):
+                if b <= a: continue
                 x = np.matmul(np.transpose(all[a]['embedding']), all[b]['embedding'])
                 d = 1 - (x / (norm[a] * norm[b]))
                 dist[a,b] = d
+                dist[b,a] = d
     else:
         print('FAIL, method unknown')
         sys.exit(1)

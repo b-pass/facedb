@@ -91,9 +91,14 @@ def normalize_image(img, model):
 
     # do model-specific normalization
     if model == "Facenet":
-        for c in range(3):
-            x = img[..., c]
-            img[..., c] = (x - x.mean()) / x.std()
+        # from https://github.com/davidsandberg/facenet/blob/master/src/facenet.py#L213
+        def prewhiten(x):
+            mean = np.mean(x)
+            std = np.std(x)
+            std_adj = np.maximum(std, 1.0/np.sqrt(x.size))
+            y = np.multiply(np.subtract(x, mean), 1/std_adj)
+            return y 
+        img = prewhiten(img)
 
     elif model == "Facenet2018":
         # simply / 127.5 - 1 (similar to facenet 2018 model preprocessing step as @iamrishab posted)

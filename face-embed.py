@@ -47,7 +47,8 @@ for file,data in files:
         face['embedding'] = base64.b64encode(np.asarray(embedding, dtype='float64').tobytes()).decode('ascii')
         n += 1
 
-    open(file, 'w').write(json.dumps(data))
+    with open(file, 'w') as fp:
+        json.dump(data, fp)
     
     end = time.time()
     print(f'Processed {n} faces in {end - start}')
